@@ -42,4 +42,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
         run: |
-          aws cloudfront create-invalidation --distribution-id EK2IXZ2TWVZKC --paths "/assets/docs/samples/*"
+          API_STATUS=$(aws apigateway test-invoke-method --rest-api-id ${{ secrets.AWS_REST_API_ID }} --resource-id "${{ secrets.AWS_RESOURCE_ID }}" \
+            --http-method PUT --path-with-query-string "/prod/download-oo-com" --body "$(jq -c -n '.paths = $ARGS.positional' --args "/assets/docs/samples/*")" \
+            --region us-east-1 --query 'status' --output text || :)
+          echo "API Gateway test-invoke status: ${API_STATUS:-<failed>}"
